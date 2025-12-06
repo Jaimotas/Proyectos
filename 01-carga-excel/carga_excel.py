@@ -54,17 +54,15 @@ def cargaAutorizacion():
         hoja = wb[nombre_hoja]
 
         for i, fila in enumerate(hoja.iter_rows(min_row=2, values_only=True), start=2):
-            codMEYSS = fila[9]        # Columna A -> COD.MEYSS
-            codigo_permiso = fila[10]  # Columna B -> TIPO ACEX
-            codigo_via = fila[11]      # Columna C -> VIA ACEX
+            codMEYSS = fila[9]        
+            codigo_permiso = fila[10]  
+            codigo_via = fila[11]      
             formulario = hoja.title
 
             # Saltar filas incompletas
             if not codMEYSS or not codigo_permiso or not codigo_via:
                 print(f"Fila {i} ignorada por valores nulos")
                 continue
-
-            # Insertar registro sin filtrar duplicados
             try:
                 cursor.execute(
                     "INSERT INTO autorizacion (codMEYSS, codigo_permiso, codigo_via, formulario) VALUES (%s, %s, %s, %s)",
@@ -77,28 +75,35 @@ def cargaAutorizacion():
         conexion.commit()
         print(f"Hoja '{hoja.title}' procesada.")
 
-
-
-
-def menuCargaExcel():
+def menu():
     print("Seleccione una opción:")
     print("1. Cargar Permisos")
     print("2. Cargar Vías")
     print("3. Cargar Autorizaciones")
-    print("0. Salir")
+    print("0. Salir\n")
 
-    opcion = input("Ingrese el número de la opción: ")
-
-    if opcion == "1":
-        cargaExcel("permiso", 10, 3)
-    elif opcion == "2":
-        cargaExcel("via", 11, 4)
-    elif opcion == "3":
-        cargaAutorizacion()
-    elif opcion == "0":
-        print("Saliendo del programa.")
-    else:
-        print("Opción no válida. Intente de nuevo.")
-        menuCargaExcel()
+# Menú de opciones
+def menuCargaExcel():
+    while True:
+        menu()
+        opcion = input("Ingrese el número de la opción: ")
+        if opcion == "1": 
+            # Cargar Permisos
+            cargaExcel("permiso", 10, 3)
+            continue
+        elif opcion == "2":
+            # Cargar Vías
+            cargaExcel("via", 11, 4)
+            continue
+        elif opcion == "3":
+            # Cargar Autorizaciones
+            cargaAutorizacion()
+            continue
+        elif opcion == "0":
+            print("Saliendo del programa.")
+            break
+        else:
+            print("Opción no válida. Intente de nuevo.\n")
+            continue
 if __name__ == "__main__":
  menuCargaExcel()
