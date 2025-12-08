@@ -1,4 +1,4 @@
-import signal, sys
+import signal, sys, os
 import mysql.connector
 import openpyxl
 from mysql.connector import IntegrityError
@@ -18,8 +18,14 @@ conexion = mysql.connector.connect(
     port=3307,
 )
 cursor = conexion.cursor()
+# Obtener el directorio del script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+docs_dir = os.path.join(script_dir, "docs")
 
-wb = openpyxl.load_workbook("docs/excel-cod.xlsx")
+# Crear carpetas si no existen
+os.makedirs(docs_dir, exist_ok=True)
+fichero_permisos = os.path.join(docs_dir, "excel-cod.xlsx")
+wb = openpyxl.load_workbook(fichero_permisos)
 def cargaModelos():
     cursor.execute("TRUNCATE TABLE lga_modelos")
     for nombre_hoja in wb.sheetnames:
