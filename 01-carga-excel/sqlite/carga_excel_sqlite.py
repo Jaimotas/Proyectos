@@ -1,7 +1,9 @@
 import signal, sys
-import mysql.connector
-import openpyxl
-from mysql.connector import IntegrityError
+import os
+from openpyxl import load_workbook
+import sqlite3
+from sqlite3 import IntegrityError
+
 
 def cortarPrograma(sig, frame):
     print("\n\n[!]Saliendo ...\n")
@@ -10,16 +12,22 @@ def cortarPrograma(sig, frame):
 
 # Ctlr + C
 signal.signal(signal.SIGINT, cortarPrograma)
-conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="permisos",
-    port=3307,
-)
-cursor = conexion.cursor()
 
-wb = openpyxl.load_workbook("docs/excel-cod.xlsx")
+# Obtener el directorio del script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+db_dir = os.path.join(script_dir, "db")
+docs_dir = os.path.join(script_dir, "docs")
+
+# Crear carpetas si no existen
+os.makedirs(db_dir, exist_ok=True)
+os.makedirs(docs_dir, exist_ok=True)
+
+# Variables globales
+fichero_permisos = os.path.join(docs_dir, "excel-cod.xlsx")
+
+conn = sqlite3.connect(os.path.join(db_dir, "permisos.sqlite"))
+cursor = conn.cursor()
+wb = load_workbook(fichero_permisos)
 
 def cargaExcel(tabla: str, codigo_col: int, descripcion_col: int):
     # Borrar tabla antes de cargar nuevos datos
@@ -38,18 +46,16 @@ def cargaExcel(tabla: str, codigo_col: int, descripcion_col: int):
             try:
                 # INSERT dinámico usando f-string para el nombre de la tabla
                 cursor.execute(
-                    f"INSERT INTO {tabla} (codigo, descripcion, formulario) VALUES (%s, %s, %s)",
+                    f"INSERT INTO {tabla} (codigo, descripcion, formulario) VALUES (?, ?, ?)",
                     (codigo, descripcion, formulario)
                 )
-                conexion.commit()
+                conn.commit()
 
             except IntegrityError as e:
-                if e.errno == 1062:  # codigo duplicado
-                    print(f"Duplicado ignorado: {codigo}")
-                else:
-                    raise
+                print(f"Error insertando {codigo} en tabla {tabla}: {e}")
+
 def cargaAutorizacion():
-    cursor.execute("TRUNCATE TABLE autorizacion")
+    cursor.execute("DELETE FROM autorizacion")
     for nombre_hoja in wb.sheetnames:
         hoja = wb[nombre_hoja]
 
@@ -65,14 +71,14 @@ def cargaAutorizacion():
                 continue
             try:
                 cursor.execute(
-                    "INSERT INTO autorizacion (codMEYSS, codigo_permiso, codigo_via, formulario) VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO autorizacion (codMEYSS, codigo_permiso, codigo_via, formulario) VALUES (?, ?, ?, ?)",
                     (codMEYSS, codigo_permiso, codigo_via, formulario)
                 )
             except IntegrityError as e:
                 # Esto capturará problemas de FK o cualquier otro error
                 print(f"Error insertando {codMEYSS} en fila {i}: {e}")
 
-        conexion.commit()
+        conn.commit()
         print(f"Hoja '{hoja.title}' procesada.")
 
 def menu():
