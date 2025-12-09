@@ -18,10 +18,6 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(script_dir, "db")
 docs_dir = os.path.join(script_dir, "docs")
 
-# Crear carpetas si no existen
-os.makedirs(db_dir, exist_ok=True)
-os.makedirs(docs_dir, exist_ok=True)
-
 # Variables globales
 fichero_permisos = os.path.join(docs_dir, "excel-cod.xlsx")
 

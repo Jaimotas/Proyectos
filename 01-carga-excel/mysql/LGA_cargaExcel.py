@@ -22,8 +22,6 @@ cursor = conexion.cursor()
 script_dir = os.path.dirname(os.path.abspath(__file__))
 docs_dir = os.path.join(script_dir, "docs")
 
-# Crear carpetas si no existen
-os.makedirs(docs_dir, exist_ok=True)
 fichero_permisos = os.path.join(docs_dir, "excel-cod.xlsx")
 wb = openpyxl.load_workbook(fichero_permisos)
 def cargaModelos():
