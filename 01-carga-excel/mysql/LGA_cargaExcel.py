@@ -7,7 +7,6 @@ def cortarPrograma(sig, frame):
     print("\n\n[!]Saliendo ...\n")
     sys.exit(1)
 
-
 # Ctlr + C
 signal.signal(signal.SIGINT, cortarPrograma)
 conexion = mysql.connector.connect(
@@ -17,6 +16,7 @@ conexion = mysql.connector.connect(
     database="formularios",
     port=3307,
 )
+
 cursor = conexion.cursor()
 # Obtener el directorio del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -29,12 +29,12 @@ def cargaModelos():
     for nombre_hoja in wb.sheetnames:
         id_formulario = nombre_hoja  # el ID viene del nombre de la hoja
         des_modelo = ''               # vacío por ahora
-
-        # Saltar si ID vacío por algún motivo
+    
+        # Saltar si ID vacío
         if not id_formulario:
             print(f"Hoja ignorada por ID vacío: {nombre_hoja}")
             continue
-
+    
         try:
             cursor.execute(
                 "INSERT INTO LGA_MODELOS (ID, DES_MODELO) VALUES (%s, %s)",
