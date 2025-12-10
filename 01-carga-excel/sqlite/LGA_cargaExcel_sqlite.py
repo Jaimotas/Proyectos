@@ -103,11 +103,55 @@ def cargaVias():
 
         conn.commit()
         print(f"Hoja '{hoja.title}' procesada.")
+def cargaAutorizaciones():
+    cursor.execute("DELETE FROM lga_autorizaciones")
+    for nombre_hoja in wb.sheetnames:
+        hoja = wb[nombre_hoja]
+
+        for i, fila in enumerate(hoja.iter_rows(min_row=2, values_only=True), start=2):
+            cod_MEYSS = fila[9]      
+            id_permiso = fila[10]
+            id_via = fila[11]
+            id_modelo = nombre_hoja   
+
+            # Saltar filas incompletas
+            if not cod_MEYSS or not id_permiso or not id_via:
+                print(f"Fila {i} ignorada por campos vacíos")
+                continue
+
+            try:
+                # Verificar que las claves foráneas existan antes de insertar
+                cursor.execute("SELECT 1 FROM LGA_MODELOS WHERE ID = ?", (id_modelo,))
+                if not cursor.fetchone():
+                    print(f"Fila {i}: Modelo '{id_modelo}' no existe")
+                    continue
+                
+                cursor.execute("SELECT 1 FROM LGA_PERMISOS WHERE ID = ?", (id_permiso,))
+                if not cursor.fetchone():
+                    print(f"Fila {i}: Permiso '{id_permiso}' no existe")
+                    continue
+                
+                cursor.execute("SELECT 1 FROM LGA_VIA_ACCESO WHERE ID = ?", (id_via,))
+                if not cursor.fetchone():
+                    print(f"Fila {i}: Vía '{id_via}' no existe")
+                    continue
+                
+                # Si todas las claves foráneas existen, hacer el INSERT
+                cursor.execute(
+                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO) VALUES (?, ?, ?, ?)",
+                    (cod_MEYSS, id_permiso, id_via, id_modelo)
+                )
+            except IntegrityError as e:
+                print(f"Error insertando {cod_MEYSS} en fila {i}: {e}")
+
+        conn.commit()
+        print(f"Hoja '{hoja.title}' procesada.")
 def menu():
     print("Seleccione una opción:")
     print("1. Cargar Modelos")
     print("2. Cargar Permisos")
     print("3. Cargar Vias")
+    print("4. Cargar Autorizaciones")
     print("0. Salir\n")
 
 def menuExcel():
@@ -123,6 +167,9 @@ def menuExcel():
         elif opcion == "3":
             # Cargar Vias
             cargaVias()
+        elif opcion == "4":
+            # Cargar Autorizaciones
+            cargaAutorizaciones()
         elif opcion == "0":
             print("Saliendo del programa.")
             break
