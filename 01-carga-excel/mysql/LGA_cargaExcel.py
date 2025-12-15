@@ -14,7 +14,7 @@ conexion = mysql.connector.connect(
     user="root",
     password="",
     database="formularios",
-    port=3307,
+    port=3306,
 )
 
 cursor = conexion.cursor()
@@ -25,16 +25,16 @@ docs_dir = os.path.join(script_dir, "docs")
 fichero_permisos = os.path.join(docs_dir, "excel-cod.xlsx")
 wb = openpyxl.load_workbook(fichero_permisos)
 def cargaModelos():
-    cursor.execute("TRUNCATE TABLE lga_modelos")
+    cursor.execute("DELETE FROM lga_modelos")
     for nombre_hoja in wb.sheetnames:
         id_formulario = nombre_hoja  # el ID viene del nombre de la hoja
         des_modelo = ''               # vacío por ahora
-    
-        # Saltar si ID vacío
+
+        # Saltar si ID vacío por algún motivo
         if not id_formulario:
             print(f"Hoja ignorada por ID vacío: {nombre_hoja}")
             continue
-    
+
         try:
             cursor.execute(
                 "INSERT INTO LGA_MODELOS (ID, DES_MODELO) VALUES (%s, %s)",
@@ -43,42 +43,135 @@ def cargaModelos():
         except IntegrityError as e:
             print(f"Error insertando {id_formulario}: {e}")
 
+
     conexion.commit()
     print("Todos los modelos procesados.")
 
 def cargaPermisos():
-    cursor.execute("TRUNCATE TABLE lga_permisos")
+    cursor.execute("DELETE FROM lga_permisos")
     for nombre_hoja in wb.sheetnames:
         hoja = wb[nombre_hoja]
 
-        for i, fila in enumerate(hoja.iter_rows(min_row=2, values_only=True), start=2):
+        for i, fila in enumerate(hoja.iter_rows(min_row=2, values_only=True)):
             id_permiso = fila[10]      
             des_permiso = fila[3]    
-            lucrativo = fila[8] 
+            lucrativo = fila[19] 
+            residencia = fila[18]
             via_defecto = fila[11]
-            meses_validez = fila[7]
+            #meses_validez = fila[7]
             reglamento = fila[12]
 
+            def normalizar_valor(valor):
+                return 'N' if valor in ("N/A", None) else 'S'
+            lucrativo = normalizar_valor(lucrativo)
+            residencia = normalizar_valor(residencia)
             # Saltar filas incompletas
-            if not id_permiso or not des_permiso or not lucrativo :
+            if not id_permiso or not des_permiso or not lucrativo:
                 print(f"Fila {i} ignorada por campos vacíos")
                 continue
-
             try:
                 cursor.execute(
-                    "INSERT INTO LGA_PERMISOS (ID, DES_PERMISO, LUCRATIVO, VIA_DEFECTO, MESES_VALIDEZ, REGLAMENTO) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (id_permiso, des_permiso, lucrativo, via_defecto, meses_validez, reglamento)
+                    "INSERT INTO LGA_PERMISOS (ID, DES_PERMISO, LUCRATIVO, RESIDENCIA, VIA_DEFECTO, REGLAMENTO) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (id_permiso, des_permiso, lucrativo, residencia, via_defecto, reglamento)
                 )
             except IntegrityError as e:
                 print(f"Error insertando {id_permiso} en fila {i}: {e}")
 
         conexion.commit()
         print(f"Hoja '{hoja.title}' procesada.")
+def cargaVias():
+    cursor.execute("DELETE FROM lga_via_acceso")
+    for nombre_hoja in wb.sheetnames:
+        hoja = wb[nombre_hoja]
+
+        for i, fila in enumerate(hoja.iter_rows(min_row=2, values_only=True)):
+            id_via = fila[11]      
+            des_via_acceso = fila[5]
+
+            # Saltar filas incompletas
+            if not id_via:
+                print(f"Fila {i} ignorada por campos vacíos")
+                continue
+
+            try:
+                cursor.execute(
+                    "INSERT INTO LGA_VIA_ACCESO (ID, DES_VIA_ACCESO) VALUES (%s, %s)",
+                    (id_via, des_via_acceso)
+                )
+            except IntegrityError as e:
+                print(f"Error insertando {id_via} en fila {i}: {e}")
+
+        conexion.commit()
+        print(f"Hoja '{hoja.title}' procesada.")
+def cargaAutorizaciones():
+    cursor.execute("DELETE FROM lga_autorizaciones")
+    for nombre_hoja in wb.sheetnames:
+        hoja = wb[nombre_hoja]
+
+        for i, fila in enumerate(hoja.iter_rows(min_row=2, values_only=True)):
+            cod_MEYSS = fila[9]      
+            id_permiso = fila[10]
+            id_via = fila[11]
+            num_plazos = fila[7]
+            tipo_plazo = fila[7]
+            silencio = fila[8]
+            id_modelo = nombre_hoja   
+
+            # Saltar filas incompletas
+            if not cod_MEYSS or not id_permiso or not id_via:
+                print(f"Fila {i} ignorada por campos vacíos")
+                continue
+
+            try:
+                # Validaciones antes de insertar
+                cursor.execute("SELECT 1 FROM LGA_MODELOS WHERE ID = %s", (id_modelo,))
+                if not cursor.fetchone():
+                    print(f"Fila {i}: Modelo '{id_modelo}' no existe")
+                    continue
+                
+                cursor.execute("SELECT 1 FROM LGA_PERMISOS WHERE ID = %s", (id_permiso,))
+                if not cursor.fetchone():
+                    print(f"Fila {i}: Permiso '{id_permiso}' no existe")
+                    continue
+                
+                cursor.execute("SELECT 1 FROM LGA_VIA_ACCESO WHERE ID = %s", (id_via,))
+                if not cursor.fetchone():
+                    print(f"Fila {i}: Vía '{id_via}' no existe")
+                    continue
+                # Extraer solo caracteres numéricos
+                num_plazos_str = ''.join(filter(str.isdigit, str(num_plazos)))
+                num_plazos = int(num_plazos_str) if num_plazos_str else 0
+                # Formatear tipo_plazo
+                tipo_plazo = formateo_tipo_plazo(str(tipo_plazo))
+                # Si todas las claves foráneas existen, hacer el INSERT
+                if silencio not in ('S', 'N'):
+                    silencio = 'N'  # Valor por defecto si no es válido
+                cursor.execute(
+                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio)
+                )
+            except IntegrityError as e:
+                print(f"Error insertando {cod_MEYSS} en fila {i}: {e}")
+
+        conexion.commit()
+        print(f"Hoja '{hoja.title}' procesada.")
+
+def formateo_tipo_plazo(STRING: str) -> str:
+    STRING = STRING.strip().casefold()
+    if STRING.endswith("meses") or STRING.endswith("mes"):
+        return "M"
+    elif STRING.endswith("días") or STRING.endswith("dias") or STRING.endswith("dia") or STRING.endswith("día"):
+        return "D"
+    else:
+        return "M" # Valor por defecto
+    
 
 def menu():
     print("Seleccione una opción:")
     print("1. Cargar Modelos")
     print("2. Cargar Permisos")
+    print("3. Cargar Vias")
+    print("4. Cargar Autorizaciones")
     print("0. Salir\n")
 
 def menuExcel():
@@ -91,6 +184,12 @@ def menuExcel():
         elif opcion == "2":
             # Cargar Permisos
             cargaPermisos()
+        elif opcion == "3":
+            # Cargar Vias
+            cargaVias()
+        elif opcion == "4":
+            # Cargar Autorizaciones
+            cargaAutorizaciones()
         elif opcion == "0":
             print("Saliendo del programa.")
             break
