@@ -30,11 +30,6 @@ def cargaModelos():
         id_formulario = nombre_hoja  # el ID viene del nombre de la hoja
         des_modelo = ''               # vacío por ahora
 
-        # Saltar si ID vacío por algún motivo
-        if not id_formulario:
-            print(f"Hoja ignorada por ID vacío: {nombre_hoja}")
-            continue
-
         try:
             cursor.execute(
                 "INSERT INTO LGA_MODELOS (ID, DES_MODELO) VALUES (%s, %s)",
@@ -65,9 +60,9 @@ def cargaPermisos():
                 return 'N' if valor in ("N/A", None) else 'S'
             lucrativo = normalizar_valor(lucrativo)
             residencia = normalizar_valor(residencia)
-            # Saltar filas incompletas
-            if not id_permiso or not des_permiso or not lucrativo:
-                print(f"Fila {i} ignorada por campos vacíos")
+            #Saltar filas incompletas
+            if not id_permiso or not des_permiso or not via_defecto or not reglamento:
+                print(f"Fila {i+2} ignorada por campos vacíos")
                 continue
             try:
                 cursor.execute(
@@ -75,7 +70,7 @@ def cargaPermisos():
                     (id_permiso, des_permiso, lucrativo, residencia, via_defecto, reglamento)
                 )
             except IntegrityError as e:
-                print(f"Error insertando {id_permiso} en fila {i}: {e}")
+                print(f"Error insertando {id_permiso} en fila {i+2}: {e}")
 
         conexion.commit()
         print(f"Hoja '{hoja.title}' procesada.")
@@ -87,19 +82,17 @@ def cargaVias():
         for i, fila in enumerate(hoja.iter_rows(min_row=2, values_only=True)):
             id_via = fila[11]      
             des_via_acceso = fila[5]
-
-            # Saltar filas incompletas
-            if not id_via:
-                print(f"Fila {i} ignorada por campos vacíos")
-                continue
-
             try:
+                #Salta filas incompletas
+                if not id_via:
+                    print(f"Fila {i+2} ignorada por campos vacíos")
+                    continue
                 cursor.execute(
                     "INSERT INTO LGA_VIA_ACCESO (ID, DES_VIA_ACCESO) VALUES (%s, %s)",
                     (id_via, des_via_acceso)
                 )
             except IntegrityError as e:
-                print(f"Error insertando {id_via} en fila {i}: {e}")
+                print(f"Error insertando {id_via} en fila {i+2}: {e}")
 
         conexion.commit()
         print(f"Hoja '{hoja.title}' procesada.")
@@ -115,28 +108,29 @@ def cargaAutorizaciones():
             num_plazos = fila[7]
             tipo_plazo = fila[7]
             silencio = fila[8]
+            tasa_052 = fila[18]
+            tasa_062 = fila[19]
             id_modelo = nombre_hoja   
 
-            # Saltar filas incompletas
-            if not cod_MEYSS or not id_permiso or not id_via:
-                print(f"Fila {i} ignorada por campos vacíos")
-                continue
-
             try:
+                #Salta filas incompletas
+                if not cod_MEYSS or not id_permiso or not id_via or not id_modelo:
+                    print(f"Fila {i+2} ignorada por campos vacíos")
+                    continue
                 # Validaciones antes de insertar
                 cursor.execute("SELECT 1 FROM LGA_MODELOS WHERE ID = %s", (id_modelo,))
                 if not cursor.fetchone():
-                    print(f"Fila {i}: Modelo '{id_modelo}' no existe")
+                    print(f"Fila {i+2}: Modelo '{id_modelo}' no existe")
                     continue
                 
                 cursor.execute("SELECT 1 FROM LGA_PERMISOS WHERE ID = %s", (id_permiso,))
                 if not cursor.fetchone():
-                    print(f"Fila {i}: Permiso '{id_permiso}' no existe")
+                    print(f"Fila {i+2}: Permiso '{id_permiso}' no existe")
                     continue
                 
                 cursor.execute("SELECT 1 FROM LGA_VIA_ACCESO WHERE ID = %s", (id_via,))
                 if not cursor.fetchone():
-                    print(f"Fila {i}: Vía '{id_via}' no existe")
+                    print(f"Fila {i+2}: Vía '{id_via}' no existe")
                     continue
                 # Extraer solo caracteres numéricos
                 num_plazos_str = ''.join(filter(str.isdigit, str(num_plazos)))
@@ -145,13 +139,14 @@ def cargaAutorizaciones():
                 tipo_plazo = formateo_tipo_plazo(str(tipo_plazo))
                 # Si todas las claves foráneas existen, hacer el INSERT
                 if silencio not in ('S', 'N'):
-                    silencio = 'N'  # Valor por defecto si no es válido
+                    silencio = 'N'  # Valor por defecto si no es válido:
+                
                 cursor.execute(
-                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio)
+                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio, tasa_052, tasa_062)
                 )
             except IntegrityError as e:
-                print(f"Error insertando {cod_MEYSS} en fila {i}: {e}")
+                print(f"Error insertando {cod_MEYSS} en fila {i+2}: {e}")
 
         conexion.commit()
         print(f"Hoja '{hoja.title}' procesada.")
@@ -164,7 +159,12 @@ def formateo_tipo_plazo(STRING: str) -> str:
         return "D"
     else:
         return "M" # Valor por defecto
-    
+def BorrarTablas():
+    tablas = ["LGA_MODELOS", "LGA_PERMISOS", "LGA_VIA_ACCESO", "LGA_AUTORIZACIONES"]
+    for tabla in tablas:
+        cursor.execute(f"DELETE FROM {tabla}")
+    conexion.commit()
+    print("Todas las tablas han sido borradas.")
 
 def menu():
     print("Seleccione una opción:")
@@ -172,6 +172,7 @@ def menu():
     print("2. Cargar Permisos")
     print("3. Cargar Vias")
     print("4. Cargar Autorizaciones")
+    print("5. Borrar Tablas")
     print("0. Salir\n")
 
 def menuExcel():
@@ -190,6 +191,9 @@ def menuExcel():
         elif opcion == "4":
             # Cargar Autorizaciones
             cargaAutorizaciones()
+        elif opcion == "5":
+            # Borrar Tablas
+            BorrarTablas()
         elif opcion == "0":
             print("Saliendo del programa.")
             break
