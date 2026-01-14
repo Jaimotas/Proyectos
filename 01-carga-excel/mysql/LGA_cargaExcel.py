@@ -14,7 +14,7 @@ conexion = mysql.connector.connect(
     host="localhost",
     user="root",
     password="",
-    database="formularios",
+    database="lga_formularios",
     port=3306,
 )
 
@@ -143,11 +143,10 @@ def cargaAutorizaciones():
                 if silencio not in ('S', 'N'):
                     silencio = 'N'  # Valor por defecto si no es válido:
                 patron_dos_veces_smi = r"^.{1}\..{1}\..+"
-                if tasa_dos_veces_smi is not None:
-                    if re.match(patron_dos_veces_smi, str(tasa_dos_veces_smi)) is None:
-                        tasa_dos_veces_smi = 'N'
-                    else: 
-                        tasa_dos_veces_smi = 'S'
+                if re.match(patron_dos_veces_smi, str(tasa_dos_veces_smi)) is None:
+                    tasa_dos_veces_smi = 'N'
+                else: 
+                    tasa_dos_veces_smi = 'S'
 
                 cursor.execute(
                     "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062, DOS_VECES_SMI) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
