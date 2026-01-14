@@ -1,4 +1,5 @@
 import signal, sys, os
+import re
 import mysql.connector
 import openpyxl
 from mysql.connector import IntegrityError
@@ -110,6 +111,7 @@ def cargaAutorizaciones():
             silencio = fila[8]
             tasa_052 = fila[18]
             tasa_062 = fila[19]
+            tasa_dos_veces_smi= fila[20]
             id_modelo = nombre_hoja   
 
             try:
@@ -140,10 +142,16 @@ def cargaAutorizaciones():
                 # Si todas las claves foráneas existen, hacer el INSERT
                 if silencio not in ('S', 'N'):
                     silencio = 'N'  # Valor por defecto si no es válido:
-                
+                patron_dos_veces_smi = r"^.{1}\..{1}\..+"
+                if tasa_dos_veces_smi is not None:
+                    if re.match(patron_dos_veces_smi, str(tasa_dos_veces_smi)) is None:
+                        tasa_dos_veces_smi = 'N'
+                    else: 
+                        tasa_dos_veces_smi = 'S'
+
                 cursor.execute(
-                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio, tasa_052, tasa_062)
+                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062, DOS_VECES_SMI) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio, tasa_052, tasa_062, tasa_dos_veces_smi)
                 )
             except IntegrityError as e:
                 print(f"Error insertando {cod_MEYSS} en fila {i+2}: {e}")
