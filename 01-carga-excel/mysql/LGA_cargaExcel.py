@@ -1,5 +1,5 @@
 import signal, sys, os
-import re
+import re, unicodedata
 import mysql.connector
 import openpyxl
 from mysql.connector import IntegrityError
@@ -112,6 +112,7 @@ def cargaAutorizaciones():
             tasa_052 = fila[18]
             tasa_062 = fila[19]
             tasa_dos_veces_smi= fila[20]
+            autoriza_trabajar= fila[21]
             id_modelo = nombre_hoja   
 
             try:
@@ -147,16 +148,59 @@ def cargaAutorizaciones():
                     tasa_dos_veces_smi = 'N'
                 else: 
                     tasa_dos_veces_smi = 'S'
-
+                try:
+                    autoriza_trabajar = validar_autoriza_trabajar(str(autoriza_trabajar))
+                except ValueError as ve:
+                    print(f"Fila {i+2}: {ve}")
+                    continue
                 cursor.execute(
-                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062, DOS_VECES_SMI) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio, tasa_052, tasa_062, tasa_dos_veces_smi)
+                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062, DOS_VECES_SMI, AUTORIZA_TRABAJAR) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio, tasa_052, tasa_062, tasa_dos_veces_smi, autoriza_trabajar)
                 )
             except IntegrityError as e:
                 print(f"Error insertando {cod_MEYSS} en fila {i+2}: {e}")
 
         conexion.commit()
         print(f"Hoja '{hoja.title}' procesada.")
+def normalizar_texto(texto: str) -> str:
+    """
+    Elimina acentos y convierte a mayúsculas
+    """
+    texto = texto.strip().upper()
+    texto = ''.join(
+        c for c in unicodedata.normalize('NFD', texto)
+        if unicodedata.category(c) != 'Mn'
+    )
+    return texto
+
+
+def validar_autoriza_trabajar(valor: str | None):
+    if valor is None or str(valor).strip() == "":
+        return None
+
+    texto = normalizar_texto(valor)
+
+    # Reglas de detección (orden importa)
+    reglas = {
+        'S': ['SI', 'SÍ', 'AUTORIZA', 'AUTORIZADO', 'TRABAJA'],
+        'N': ['NO'],
+        'I': ['INSTRUCCION'],
+        'R': ['RESOLUCION'],
+        'P': ['PRACTICA', 'PRACTICAS'],
+        'L': ['NO AUTORIZA', 'DATOS LABORALES'],
+        'A': ['SI/NO', 'S/N']
+    }
+
+    for codigo, palabras_clave in reglas.items():
+        for palabra in palabras_clave:
+            if palabra in texto:
+                return codigo
+
+    # Si llega aquí, no se pudo determinar
+    raise ValueError(
+        f"No se pudo interpretar el valor '{valor}' para 'Autoriza a trabajar'"
+    )
+
 
 def formateo_tipo_plazo(STRING: str) -> str:
     STRING = STRING.strip().casefold()
