@@ -113,6 +113,7 @@ def cargaAutorizaciones():
             tasa_062 = fila[19]
             tasa_dos_veces_smi= fila[20]
             autoriza_trabajar= fila[21]
+            duracion= fila[22]
             id_modelo = nombre_hoja   
 
             try:
@@ -153,25 +154,54 @@ def cargaAutorizaciones():
                 except ValueError as ve:
                     print(f"Fila {i+2}: {ve}")
                     continue
+                duracion = parse_duracion(str(duracion))
                 cursor.execute(
-                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062, DOS_VECES_SMI, AUTORIZA_TRABAJAR) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio, tasa_052, tasa_062, tasa_dos_veces_smi, autoriza_trabajar)
+                    "INSERT INTO LGA_AUTORIZACIONES (COD_MEYSS, ID_PERMISO, ID_VIA, ID_MODELO, NUM_PLAZO, TIPO_PLAZO, SILENCIO, EPIGRAFE_TASA_052, EPIGRAFE_TASA_062, DOS_VECES_SMI, AUTORIZA_TRABAJAR, DURACION) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (cod_MEYSS, id_permiso, id_via, id_modelo, num_plazos, tipo_plazo, silencio, tasa_052, tasa_062, tasa_dos_veces_smi, autoriza_trabajar, duracion)
                 )
             except IntegrityError as e:
                 print(f"Error insertando {cod_MEYSS} en fila {i+2}: {e}")
 
         conexion.commit()
         print(f"Hoja '{hoja.title}' procesada.")
+
 def normalizar_texto(texto: str) -> str:
-    """
-    Elimina acentos y convierte a mayúsculas
-    """
     texto = texto.strip().upper()
     texto = ''.join(
         c for c in unicodedata.normalize('NFD', texto)
         if unicodedata.category(c) != 'Mn'
     )
     return texto
+
+def parse_duracion(duracion: str):
+    """
+    Devuelve:
+      - 'IN' si es indefinida (MENOS de 1 AÑO, INDEFINIDO, SIN LIMITE, etc)
+      - 'DE' si es desconocida / no especificada
+      - int (meses) si es una duración concreta
+    """
+    if not duracion:
+        return "DE"
+
+    txt = normalizar_texto(duracion)
+
+    # Indefinida
+    if "INDEFIN" in txt or "-1" in txt:
+        return "IN"
+
+    # Buscar número
+    match = re.search(r'(\d+)\s*(ANO|ANOS|MES|MESES)', txt)
+    if not match:
+        return "DE"
+
+    valor = int(match.group(1))
+    unidad = match.group(2)
+
+    if unidad.startswith("ANO"):
+        meses = valor * 12
+    else:  # MES / MESES
+        meses = valor
+    return meses
 
 
 def validar_autoriza_trabajar(valor: str | None):
@@ -206,7 +236,7 @@ def formateo_tipo_plazo(STRING: str) -> str:
     STRING = STRING.strip().casefold()
     if STRING.endswith("meses") or STRING.endswith("mes"):
         return "M"
-    elif STRING.endswith("días") or STRING.endswith("dias") or STRING.endswith("dia") or STRING.endswith("día"):
+    elif STRING.endswith("dias") or STRING.endswith("dia"):
         return "D"
     else:
         return "M" # Valor por defecto
