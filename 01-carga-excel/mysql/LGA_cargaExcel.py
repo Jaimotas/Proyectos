@@ -173,10 +173,12 @@ def normalizar_texto(texto: str) -> str:
     )
     return texto
 
+import re
+
 def parse_duracion(duracion: str):
     """
     Devuelve:
-      - 'IN' si es indefinida (MENOS de 1 AÑO, INDEFINIDO, SIN LIMITE, etc)
+      - 'IN' si es indefinida (MENOS de 1 AÑO, MAX, <, >, HASTA 3 MESES, PLURIANUAL, etc)
       - 'DE' si es desconocida / no especificada
       - int (meses) si es una duración concreta
     """
@@ -185,12 +187,23 @@ def parse_duracion(duracion: str):
 
     txt = normalizar_texto(duracion)
 
-    # Indefinida
-    if "INDEFIN" in txt or "-1" in txt:
+    # Palabras o símbolos que indican rango o indefinido
+    patrones_indefinidos = [
+        "INDEFINIDO", "LIMITE", "ILIMITADO", "PLURIANUAL",
+        "MENOS", "MAX", "MIN", "HASTA", "MAS DE", "SUPERIOR A", "INFERIOR A",
+        "<", ">", ">=", "<="
+    ]
+
+    for p in patrones_indefinidos:
+        if p in txt:
+            return "IN"
+
+    # Valor técnico de indefinido
+    if "-1" in txt:
         return "IN"
 
-    # Buscar número
-    match = re.search(r'(\d+)\s*(ANO|ANOS|MES|MESES)', txt)
+    # Buscar número concreto
+    match = re.search(r'(\d+)\s*(DIA|DIAS|ANO|ANOS|MES|MESES)', txt)
     if not match:
         return "DE"
 
@@ -199,10 +212,12 @@ def parse_duracion(duracion: str):
 
     if unidad.startswith("ANO"):
         meses = valor * 12
+    elif unidad.startswith("DIA"):
+        meses = valor // 30  # Aproximación a meses
     else:  # MES / MESES
         meses = valor
-    return meses
 
+    return meses
 
 def validar_autoriza_trabajar(valor: str | None):
     if valor is None or str(valor).strip() == "":
@@ -210,11 +225,23 @@ def validar_autoriza_trabajar(valor: str | None):
 
     texto = normalizar_texto(valor)
 
+    # Casos directos
+    if "CUENTA AJENA" in texto:
+        return "S"   # Sí autoriza a trabajar
+
+    # Casos ambiguos o combinados
+    if texto in ["/", "-", "N/A"]:
+        return "A"
+
+    if "C/A" in texto or "C/P" in texto:
+        # C/A, C/P, C/A Y C/P → ambiguo
+        return "A"
+
     # Reglas de detección (orden importa)
     reglas = {
         'S': ['SI', 'SÍ', 'AUTORIZA', 'AUTORIZADO', 'TRABAJA'],
         'N': ['NO'],
-        'I': ['INSTRUCCION'],
+        'I': ['INSTRUCCION', 'INSTRUCCIONES'],
         'R': ['RESOLUCION'],
         'P': ['PRACTICA', 'PRACTICAS'],
         'L': ['NO AUTORIZA', 'DATOS LABORALES'],
