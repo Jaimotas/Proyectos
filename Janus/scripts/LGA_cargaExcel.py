@@ -54,7 +54,6 @@ def cargaPermisos():
             lucrativo = fila[19] 
             residencia = fila[18]
             via_defecto = fila[11]
-            #meses_validez = fila[7]
             reglamento = fila[12]
 
             def normalizar_valor(valor):
@@ -62,7 +61,7 @@ def cargaPermisos():
             lucrativo = normalizar_valor(lucrativo)
             residencia = normalizar_valor(residencia)
             #Saltar filas incompletas
-            if not id_permiso or not des_permiso or not via_defecto or not reglamento:
+            if not id_permiso or not des_permiso or not via_defecto:
                 print(f"Fila {i+2} ignorada por campos vacíos")
                 continue
             try:
