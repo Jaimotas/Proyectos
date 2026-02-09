@@ -1,0 +1,229 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f6f9;
+    color: #1a1a1a;
+}
+
+.app-header {
+    background: #ffffff;
+    border-bottom: 2px solid #005ea5;
+    padding: 14px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-janus {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #005ea5;
+}
+
+.volver {
+    color: #005ea5;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.volver:hover {
+    text-decoration: underline;
+}
+
+.app-content {
+    padding: 30px;
+}
+
+.app-content h1 {
+    font-size: 22px;
+    margin-bottom: 25px;
+    color: #005ea5;
+}
+
+.modulos-carga {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.modulo-carga {
+    background: #ffffff;
+    border: 1px solid #d0d6de;
+    border-radius: 4px;
+    padding: 18px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #005ea5;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modulo-carga:hover {
+    background: #eaf2fb;
+    border-color: #005ea5;
+}
+
+.carga-interfaz select.form-control {
+    height: 40px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #d0d6de;
+}
+
+.carga-interfaz select.form-control:focus {
+    border-color: #005ea5;
+    box-shadow: 0 0 0 0.1rem rgba(0, 94, 165, 0.25);
+}
+
+.crud-opciones {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.crud-opciones .btn {
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 8px 18px;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crud-opciones .btn:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+    .crud-opciones {
+        flex-direction: column;
+    }
+
+    .crud-opciones .btn {
+        width: 100%;
+    }
+}
+
+/* ===============================
+   FORMULARIO DINÁMICO CREATE
+   =============================== */
+
+#zonaTrabajo .card {
+    background: #ffffff;
+    border: 1px solid #d0d6de;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-top: 20px;
+}
+
+#zonaTrabajo .card-body {
+    padding: 20px;
+}
+
+#zonaTrabajo .card h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #005ea5;
+    margin-bottom: 15px;
+}
+
+#zonaTrabajo .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+#zonaTrabajo .form-row .form-group {
+    flex: 0 1 240px;
+    min-width: 180px;
+    max-width: 260px;
+    text-align: left;
+}
+
+#zonaTrabajo .form-row .form-group.col-md-12 {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+
+#zonaTrabajo .form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 5px;
+    display: block;
+}
+
+#zonaTrabajo .form-control {
+    height: 38px;
+    border-radius: 4px;
+    border: 1px solid #d0d6de;
+    font-size: 14px;
+}
+
+#zonaTrabajo .form-control:focus {
+    border-color: #005ea5;
+    box-shadow: 0 0 0 0.1rem rgba(0, 94, 165, 0.15);
+}
+
+/* ===============================
+   TABLA DE CONSULTA
+   =============================== */
+
+#zonaTrabajo .table-responsive {
+    margin-top: 15px;
+}
+
+#zonaTrabajo .table {
+    font-size: 13px;
+    border-color: #b7c4d3;
+}
+
+#zonaTrabajo .table th,
+#zonaTrabajo .table td {
+    padding: 6px 8px;
+    border: 1px solid #b7c4d3;
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+#zonaTrabajo .table thead th {
+    background-color: #eaf2fb;
+    color: #003f6b;
+    font-weight: 600;
+}
+
+/* ===============================
+   BOTÓN GUARDAR ESTILIZADO
+   =============================== */
+
+#zonaTrabajo button {
+    margin-top: 15px;
+    background-color: #005ea5;
+    color: #ffffff;
+    font-weight: 600;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#zonaTrabajo button:hover {
+    background-color: #004080;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* ===============================
+   RESPONSIVE FORMULARIO
+   =============================== */
+@media (max-width: 768px) {
+    #zonaTrabajo .form-row {
+        flex-direction: column;
+    }
+}
