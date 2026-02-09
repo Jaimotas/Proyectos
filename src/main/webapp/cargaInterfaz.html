@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Carga de datos - JANUS</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/cargaArchivo.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo-janus">JANUS</div>
+        <a th:href="@{/home}" class="volver">← Volver</a>
+    </header>
+    
+<main class="app-content">
+
+    <section class="carga-interfaz">
+
+        <h1>Carga de datos por interfaz</h1>
+        <p class="descripcion">
+            Selecciona la tabla sobre la que deseas operar y elige una acción.
+        </p>
+
+        <!-- Selector de tabla -->
+        <div class="form-group">
+            <label for="tablaSelect">Tabla destino</label>
+            <select id="tablaSelect" class="form-control">
+                <option value="">-- Selecciona una tabla --</option>
+                <option th:each="tabla : ${tablas}"
+                        th:value="${tabla.nombre}"
+                        th:text="${tabla.nombre}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Opciones CRUD -->
+        <div id="opcionesCrud" class="crud-opciones" style="display:none;">
+            <button class="btn btn-primary">Crear</button>
+            <button class="btn btn-secondary">Consultar</button>
+            <button class="btn btn-warning">Actualizar</button>
+            <button class="btn btn-danger">Eliminar</button>
+        </div>
+
+    </section>
+
+</main>
+    
+   <script th:src="@{/js/cargaInterfaz.js}"></script>
+</body>
+</html>

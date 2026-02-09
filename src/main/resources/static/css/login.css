@@ -1,0 +1,125 @@
+body {
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color: #1a1a1a;
+}
+
+/* Caja principal */
+#contenedorLogin {
+    background: #ffffff;
+    border: 1px solid #c7cdd6;
+    border-radius: 6px;
+    width: 480px;
+}
+.login-header {
+    padding: 24px 24px 12px;
+    text-align: center;
+    border-bottom: 1px solid #e1e5ea;
+}
+
+.logo-janus {
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #005ea5;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+
+#logoJanusTexto {
+    fill: #005ea5;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+#contenedorVersion {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#smallVersion {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Cuerpo del formulario */
+#loginData {
+    padding: 28px;
+}
+
+/* Filas de campos */
+.contenedorDesplazable {
+    margin-bottom: 22px;
+}
+
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #005ea5;
+}
+
+.icon-container i {
+    font-size: 22px;
+}
+.contenedorLoginInput {
+    position: relative;
+}
+
+.loginInput {
+    width: 100%;
+    height: 40px;
+    border: 1px solid #c7cdd6;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 14px;
+    background-color: #ffffff;
+}
+
+.loginInput:focus {
+    outline: none;
+    border-color: #005ea5;
+}
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #005ea5;
+}
+
+.toggle-password i {
+    font-size: 20px;
+}
+.contenedorButtonTeclado {
+    display: flex;
+    justify-content: center;
+    margin-top: 26px;
+}
+
+.btn-azul {
+    background: #005ea5;
+    color: #ffffff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-azul:hover {
+    background: #004a87;
+}
+.alert {
+    border-radius: 4px;
+    font-size: 14px;
+}
