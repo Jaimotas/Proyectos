@@ -136,11 +136,19 @@ body {
     gap: 15px;
     margin-bottom: 15px;
     justify-content: flex-start;
+    align-items: flex-start;
 }
 
 #zonaTrabajo .form-row .form-group {
-    flex: 1 1 200px; /* se ajusta automáticamente al ancho disponible */
-    min-width: 120px;
+    flex: 0 1 240px;
+    min-width: 180px;
+    max-width: 260px;
+    text-align: left;
+}
+
+#zonaTrabajo .form-row .form-group.col-md-12 {
+    flex: 1 1 100%;
+    max-width: 100%;
 }
 
 #zonaTrabajo .form-group label {
@@ -161,6 +169,33 @@ body {
 #zonaTrabajo .form-control:focus {
     border-color: #005ea5;
     box-shadow: 0 0 0 0.1rem rgba(0, 94, 165, 0.15);
+}
+
+/* ===============================
+   TABLA DE CONSULTA
+   =============================== */
+
+#zonaTrabajo .table-responsive {
+    margin-top: 15px;
+}
+
+#zonaTrabajo .table {
+    font-size: 13px;
+    border-color: #b7c4d3;
+}
+
+#zonaTrabajo .table th,
+#zonaTrabajo .table td {
+    padding: 6px 8px;
+    border: 1px solid #b7c4d3;
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+#zonaTrabajo .table thead th {
+    background-color: #eaf2fb;
+    color: #003f6b;
+    font-weight: 600;
 }
 
 /* ===============================

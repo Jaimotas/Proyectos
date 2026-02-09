@@ -61,7 +61,7 @@ async function pintarFormularioCrear(tabla, columnas) {
             <div class="card-body">
                 <h4>Crear registro en ${tabla}</h4>
                 <form id="formCrear">
-                    <div class="row">
+                    <div class="form-row">
     `;
 
     for (const col of columnas) {
