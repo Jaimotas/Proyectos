@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CargaService {
+public class CargaArchivoService {
 
     public String ejecutarScript(String tipo) {
         StringBuilder salida = new StringBuilder();
@@ -15,20 +15,14 @@ public class CargaService {
             String basePath = System.getProperty("user.dir");
 
             String python = basePath + "/scripts/venvfp/Scripts/python.exe"; // ruta del entorno virtual
-            String script = basePath + "/scripts/LGA_cargaExcel.py"; // ruta del script
+            String script = basePath + "/scripts/JANUS_cargaExcel.py"; // ruta del script
 
-            ProcessBuilder pb = new ProcessBuilder(
-                    python,
-                    script,
-                    tipo
-            );
+            ProcessBuilder pb = new ProcessBuilder(python,script,tipo);
 
             pb.redirectErrorStream(true);
             Process proceso = pb.start();
 
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(proceso.getInputStream())
-            );
+            BufferedReader reader = new BufferedReader(new InputStreamReader(proceso.getInputStream()));
 
             String linea;
             while ((linea = reader.readLine()) != null) {

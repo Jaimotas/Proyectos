@@ -8,18 +8,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import es.gob.extranjeria.service.CargaService;
+import es.gob.extranjeria.service.CargaArchivoService;
 
 @Controller
-@RequestMapping("/carga")
-public class CargaController {
+@RequestMapping("/cargaArchivo")
+public class CargaArchivoController {
 
     @Autowired
-    private CargaService cargaService;
+    private CargaArchivoService cargaService;
 
     @GetMapping
     public String vistaCarga() {
-        return "carga";
+        return "cargaArchivo";
     }
 
     @PostMapping("/ejecutar/{tipo}")

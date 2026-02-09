@@ -2,7 +2,7 @@ function ejecutarCarga(tipo) {
     const consola = document.getElementById("resultadoCarga");
     consola.textContent = "Ejecutando carga: " + tipo + "...\n\n";
 
-    fetch("/carga/ejecutar/" + tipo, {
+    fetch("/cargaArchivo/ejecutar/" + tipo, {
         method: "POST"
     })
     .then(response => response.text())
